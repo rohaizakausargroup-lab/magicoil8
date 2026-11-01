@@ -4,6 +4,12 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Magic Oils — Pilih 4 Potions</title>
 <style>
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Magic Oils — Pilih 4 Potions</title>
+<style>
 
 :root{
  --forest:#073f2b;--forest2:#0d6242;--gold:#d9ae4b;--gold-pale:#fbf2d8;
@@ -81,14 +87,14 @@ footer{max-width:1500px;margin:0 auto;padding:0 clamp(14px,2.5vw,30px) 24px;colo
 <aside class="panel"><h2>01 · Pilih kumpulan haiwan</h2><p class="intro">Pilih kumpulan anda dahulu. Setiap kumpulan boleh memilih 4 daripada 14 potions.</p><div class="groups" id="groups"></div></aside>
 <section class="panel">
 <div class="content-head"><div><h1>Bina Magic Oils Anda</h1><p class="intro" style="margin-bottom:0">Pilih 4 potions yang mewakili kekuatan kumpulan. Namakan minyak anda dan jana kad kumpulan.</p></div><div class="counter" id="counter">0 / 4 DIPILIH</div></div>
-<div class="namefield"><label for="oilName">Nama minyak kumpulan:</label><input id="oilName" maxlength="50" placeholder="Contoh: KINGS OF JUNGLE"></div>
+<div id="animalGuide" class="traits" style="margin-top:16px"></div><div class="namefield"><label for="oilName">Nama minyak kumpulan:</label><input id="oilName" maxlength="50" placeholder="Contoh: KINGS OF JUNGLE"></div>
 <div class="progress"><span id="progress"></span></div>
 <div class="potions" id="potions"></div>
-<div class="actions"><button class="btn primary" id="saveBtn">Selesai pilih & jana kad</button><button class="btn secondary" id="clearBtn">Kosongkan pilihan</button><button class="btn secondary" id="exportBtn">Muat turun ringkasan</button><span class="hint">Pilih tepat 4 potions untuk simpan.</span></div><div class="toast" id="toast" role="status"></div>
+<div class="actions"><button class="btn primary" id="saveBtn">Selesai pilih & jana kad</button><button class="btn secondary" id="clearBtn">Kosongkan pilihan</button><button class="btn secondary" id="exportBtn">Download Image PNG</button><span class="hint">Pilih tepat 4 potions untuk simpan.</span></div><div class="toast" id="toast" role="status"></div>
 </section>
-<section class="panel result" id="resultPanel" style="grid-column:1/-1"><div class="result-card" id="resultCard"></div><div class="actions"><button class="btn secondary" id="printBtn">Cetak / Simpan sebagai PDF</button></div></section>
-<section class="panel summary" style="grid-column:1/-1"><div class="content-head"><div><h2>02 · Ringkasan pilihan semua kumpulan</h2><p class="intro" style="margin-bottom:0">Pilihan yang telah disimpan akan dipaparkan di sini.</p></div></div><div class="summary-grid" id="summary"></div></section>
-</main><footer>Aktiviti latihan kumpulan · Pilihan disimpan dalam sesi halaman ini sahaja. Muat turun ringkasan untuk simpan rekod.</footer>
+<section class="panel result" id="resultPanel" style="grid-column:1/-1"><div class="result-card" id="resultCard"></div><div class="actions"><button class="btn primary" id="downloadImageBtn">DOWNLOAD IMAGE PNG</button></div></section>
+
+</main><footer>Aktiviti latihan kumpulan · Setiap kumpulan guna telefon sendiri. Jana dan muat turun kad sebagai imej PNG.</footer>
 <script>
 const animals=[
  {id:'cheetah',name:'Cheetah',ms:'Pantas & bertenaga',emoji:'🐆',identity:'Pantas, bertenaga dan mampu memecut ke hadapan.',weakness:'Mudah keletihan jika terlalu laju.'},
@@ -104,17 +110,126 @@ const state={active:'cheetah',selected:{},names:{}};animals.forEach(a=>{state.se
 const $=id=>document.getElementById(id);
 function renderGroups(){ $('groups').innerHTML=animals.map(a=>{let done=state.selected[a.id].length===4;return `<button class="group ${state.active===a.id?'active':''}" data-group="${a.id}"><span class="animal">${a.emoji}</span><span><span class="gname">${a.name}</span><span class="gsub">${a.ms}</span><br><span class="status ${done?'done':''}">${done?'4/4 disimpan':state.selected[a.id].length+'/4 dipilih'}</span></span></button>`}).join('');document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{state.active=b.dataset.group;renderAll()})}
 function renderPotions(){let chosen=state.selected[state.active];$('potions').innerHTML=potions.map((p,i)=>`<button class="potion ${chosen.includes(i)?'selected':''}" data-potion="${i}" aria-pressed="${chosen.includes(i)}"><span class="drop ${p[2]}">${String(i+1).padStart(2,'0')}</span><span class="pname">${p[0]}</span><span class="pdesc">${p[1]}</span></button>`).join('');document.querySelectorAll('[data-potion]').forEach(b=>b.onclick=()=>{let idx=+b.dataset.potion,arr=state.selected[state.active];if(arr.includes(idx))state.selected[state.active]=arr.filter(x=>x!==idx);else if(arr.length<4)arr.push(idx);else notify('Maksimum 4 potions. Nyahpilih satu sebelum memilih yang lain.');renderAll(false)})}
-function renderCurrent(){let arr=state.selected[state.active];$('counter').textContent=`${arr.length} / 4 DIPILIH`;$('progress').style.width=(arr.length/4*100)+'%';$('oilName').value=state.names[state.active]||''}
+function renderCurrent(){let arr=state.selected[state.active],a=animals.find(x=>x.id===state.active);$('counter').textContent=`${arr.length} / 4 DIPILIH`;$('progress').style.width=(arr.length/4*100)+'%';$('oilName').value=state.names[state.active]||'';$('animalGuide').innerHTML=`<div class="trait"><strong>Identiti ${a.name}</strong>${a.identity}</div><div class="trait"><strong>Kelemahan ${a.name}</strong>${a.weakness}</div>`}
 function renderResult(){let a=animals.find(x=>x.id===state.active),arr=state.selected[state.active],name=(state.names[state.active]||'Magic Oils '+a.name).trim();if(arr.length!==4){$('resultPanel').classList.remove('show');return}let safeName=esc(name);$('resultCard').innerHTML=`<div class="animal-art" aria-label="Gambar haiwan ${a.name}"><span>${a.emoji}</span><small>${a.name.toUpperCase()}</small></div><div class="result-details"><div class="tagline">Misi Magic Oils · Kad Kumpulan</div><h2>${safeName}</h2><p style="margin:0;color:#617169">Nama minyak kumpulan</p><div class="traits"><div class="trait"><strong>Identiti ${a.name}</strong>${a.identity}</div><div class="trait"><strong>Kelemahan ${a.name}</strong>${a.weakness}</div></div><div class="oil-display"><div class="bottle"><div class="bottle-label"><strong>${safeName}</strong><span>${arr.map(i=>potions[i][0]).join(' · ')}</span></div></div><div><strong>4 Potions pilihan</strong><div class="potion-chips">${arr.map(i=>`<span class="chip">${esc(potions[i][0])}</span>`).join('')}</div></div></div></div>`;$('resultPanel').classList.add('show')}
 function renderSummary(){ $('summary').innerHTML=animals.map(a=>{let arr=state.selected[a.id],name=state.names[a.id];return `<article class="summary-card"><h3>${a.emoji} ${a.name}</h3>${name?`<p><strong>Minyak:</strong> ${esc(name)}</p>`:''}${arr.length?`<p><strong>${arr.length}/4 potions:</strong><br>${arr.map(i=>potions[i][0]).join(', ')}</p>`:`<p class="empty">Belum disimpan</p>`}</article>`}).join('') }
-function renderAll(groups=true){if(groups)renderGroups();renderPotions();renderCurrent();renderSummary();renderResult()}
+function renderAll(groups=true){if(groups)renderGroups();renderPotions();renderCurrent();renderResult()}
 function notify(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3000)}
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 $('oilName').addEventListener('input',e=>{state.names[state.active]=e.target.value;renderSummary()});
 $('saveBtn').onclick=()=>{if(state.selected[state.active].length!==4){notify('Sila pilih tepat 4 potions sebelum simpan.');return}notify('Pilihan '+animals.find(a=>a.id===state.active).name+' selesai! Kad haiwan dan botol minyak dijana di bawah.');renderAll()};
 $('clearBtn').onclick=()=>{state.selected[state.active]=[];renderAll();notify('Pilihan kumpulan ini telah dikosongkan.')};
-$('printBtn').onclick=()=>window.print();
-$('exportBtn').onclick=()=>{let lines=['RINGKASAN MISI MAGIC OILS',''];animals.forEach(a=>{lines.push(a.name+' — Nama minyak: '+(state.names[a.id]||'Belum dinamakan'));let arr=state.selected[a.id];lines.push('Potions: '+(arr.length?arr.map(i=>potions[i][0]).join(', '):'Belum dipilih'));lines.push('')});let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='ringkasan-magic-oils.txt';link.click();URL.revokeObjectURL(url)};
+function downloadCardPNG(){let a=animals.find(x=>x.id===state.active),arr=state.selected[state.active],name=(state.names[state.active]||'Magic Oils '+a.name).trim();if(arr.length!==4){notify('Pilih tepat 4 potions dahulu, kemudian tekan GENERATE.');return}const escXml=v=>String(v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&apos;'}[c]));const potionLines=arr.map(i=>potions[i][0]);const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#073f2b"/><stop offset="1" stop-color="#0d6242"/></linearGradient></defs><rect width="1200" height="800" rx="30" fill="#f5f7f2"/><path d="M0 0H1200V150H0Z" fill="url(#bg)"/><rect x="0" y="144" width="1200" height="6" fill="#d9ae4b"/><text x="55" y="55" fill="#f5d77f" font-family="Arial" font-size="20" font-weight="bold" letter-spacing="4">KAUSAR GROUP  |  KAI8</text><text x="55" y="112" fill="white" font-family="Arial" font-size="36" font-weight="bold">MISI MAGIC OILS</text><rect x="45" y="185" width="340" height="560" rx="24" fill="#fff" stroke="#e2e9e1"/><circle cx="215" cy="360" r="110" fill="#fbf2d8"/><text x="215" y="395" text-anchor="middle" font-size="125">${a.emoji}</text><text x="215" y="520" text-anchor="middle" font-family="Arial" font-size="28" font-weight="bold" fill="#073f2b">${escXml(a.name.toUpperCase())}</text><text x="430" y="230" font-family="Arial" font-size="18" font-weight="bold" fill="#98721b" letter-spacing="3">NAMA MINYAK KUMPULAN</text><text x="430" y="285" font-family="Arial" font-size="42" font-weight="bold" fill="#073f2b">${escXml(name.slice(0,38))}</text><rect x="430" y="320" width="330" height="125" rx="18" fill="white" stroke="#e2e9e1"/><text x="455" y="355" font-family="Arial" font-size="18" font-weight="bold" fill="#0d6242">IDENTITI</text><text x="455" y="387" font-family="Arial" font-size="17" fill="#152b22">${escXml(a.identity)}</text><rect x="780" y="320" width="370" height="125" rx="18" fill="white" stroke="#e2e9e1"/><text x="805" y="355" font-family="Arial" font-size="18" font-weight="bold" fill="#0d6242">KELEMAHAN</text><text x="805" y="387" font-family="Arial" font-size="17" fill="#152b22">${escXml(a.weakness)}</text><rect x="430" y="475" width="720" height="270" rx="22" fill="#fff" stroke="#e2e9e1"/><text x="465" y="520" font-family="Arial" font-size="20" font-weight="bold" fill="#073f2b">4 POTIONS PILIHAN</text>${potionLines.map((p,i)=>`<rect x="465" y="${545+i*43}" width="430" height="34" rx="10" fill="#edf5ef"/><text x="485" y="${568+i*43}" font-family="Arial" font-size="18" font-weight="bold" fill="#073f2b">${i+1}. ${escXml(p)}</text>`).join('')}<rect x="970" y="535" width="115" height="170" rx="20" fill="#78360f" stroke="#d9ae4b" stroke-width="5"/><rect x="1000" y="510" width="55" height="30" rx="5" fill="#252525"/><rect x="985" y="585" width="85" height="95" rx="6" fill="#fff8e6" stroke="#e8c66b"/><text x="1027" y="610" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#073f2b">${escXml(name.slice(0,15))}</text>${potionLines.map((p,i)=>`<text x="1027" y="${632+i*13}" text-anchor="middle" font-family="Arial" font-size="9" fill="#073f2b">${escXml(p.slice(0,16))}</text>`).join('')}</svg>`;let img=new Image(),url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));img.onload=()=>{let c=document.createElement('canvas');c.width=1200;c.height=800;c.getContext('2d').drawImage(img,0,0);URL.revokeObjectURL(url);c.toBlob(blob=>{let aTag=document.createElement('a'),u=URL.createObjectURL(blob);aTag.href=u;aTag.download='magic-oils-'+a.id+'.png';aTag.click();setTimeout(()=>URL.revokeObjectURL(u),1500)},'image/png')};img.onerror=()=>{URL.revokeObjectURL(url);notify('Imej tidak dapat dijana. Sila cuba lagi.')};img.src=url;notify('Imej PNG sedang disediakan…')}
+$('downloadImageBtn').onclick=downloadCardPNG;$('exportBtn').onclick=downloadCardPNG;
 renderAll();
 </script>
 </body></html>
+:root{
+ --forest:#073f2b;--forest2:#0d6242;--gold:#d9ae4b;--gold-pale:#fbf2d8;
+ --ink:#152b22;--muted:#6b7b72;--paper:#f5f7f2;--white:#fff;--line:#e2e9e1;
+ --shadow:0 12px 32px rgba(8,53,35,.08)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+header{position:relative;overflow:hidden;background:var(--forest);color:white;padding:20px clamp(16px,4vw,48px);border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+header:after{content:"";position:absolute;width:300px;height:300px;border:1px solid #ffffff18;border-radius:50%;right:12%;top:-220px;box-shadow:0 0 0 28px #ffffff08,0 0 0 56px #ffffff05;pointer-events:none}
+.brand{font-weight:850;letter-spacing:.4px;font-size:18px;position:relative;z-index:1}.brand span{color:#f5d77f}.tag{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#f6e6b6;position:relative;z-index:1}
+main{max-width:1500px;margin:auto;padding:clamp(14px,2.5vw,30px);display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:clamp(16px,2vw,24px);min-width:0}
+h1{font-size:clamp(25px,3vw,38px);margin:0 0 7px;color:var(--forest);letter-spacing:-1.2px;line-height:1.1}
+h2{font-size:16px;margin:0 0 10px;color:var(--forest);letter-spacing:-.2px}
+.intro{margin:0 0 18px;color:var(--muted);line-height:1.55;font-size:13px}
+.groups{display:grid;gap:8px}
+.group{width:100%;display:flex;align-items:center;gap:11px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px;cursor:pointer;transition:all .18s;color:var(--ink)}
+.group:hover{border-color:#9fbea9;transform:translateY(-1px)}
+.group.active{border:1.5px solid var(--forest2);background:#edf5ef;box-shadow:inset 3px 0 0 var(--gold)}
+.animal{width:46px;height:46px;border-radius:13px;background:linear-gradient(145deg,#f7efd9,#fff);display:grid;place-items:center;font-size:26px;flex-shrink:0}
+.gname{font-weight:800;display:block;font-size:14px}.gsub{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.status{display:inline-flex;margin-top:5px;border-radius:20px;background:#f0f2ef;color:#66746b;font-size:10px;padding:4px 7px;white-space:nowrap}
+.status.done{background:#e1f3e6;color:#176b40}
+.content-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.counter{background:var(--gold-pale);border:1px solid #f0dfaa;color:#674e12;padding:10px 13px;border-radius:12px;font-weight:850;font-size:12px;letter-spacing:.5px}
+.progress{height:6px;background:#edf1ed;border-radius:20px;overflow:hidden;margin:14px 0 18px}.progress span{height:100%;display:block;background:linear-gradient(90deg,var(--forest2),var(--gold));width:0%;transition:.2s}
+.namefield{display:flex;gap:10px;align-items:center;margin:16px 0 14px;flex-wrap:wrap;padding:12px;background:#f8faf7;border:1px solid var(--line);border-radius:14px}
+.namefield label{font-size:12px;font-weight:800;color:var(--forest)}
+.namefield input{flex:1;min-width:200px;border:1px solid #d9e3da;border-radius:10px;padding:12px 13px;font:inherit;font-size:14px;outline-color:var(--forest2);background:white}
+.potions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.potion{border:1px solid var(--line);border-radius:15px;padding:13px;background:#fff;cursor:pointer;min-height:126px;display:flex;flex-direction:column;gap:8px;text-align:left;position:relative;color:var(--ink);transition:all .18s}
+.potion:hover{transform:translateY(-2px);border-color:#a5c3ad;box-shadow:0 8px 18px #123b210b}
+.potion.selected{border:1.5px solid var(--forest2);background:#f0f7f0;box-shadow:inset 0 0 0 1px #0b67440b}
+.potion.selected:after{content:'✓';position:absolute;right:9px;top:9px;background:var(--forest2);color:white;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;font-weight:900;font-size:12px}
+.drop{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;font-size:11px;font-weight:900;color:white;letter-spacing:.3px}
+.red{background:#c94742}.blue{background:#3678c9}.pink{background:#c94d85}.green{background:#26885d}.gold{background:#d4a52f;color:#263024}.teal{background:#238e8b}.purple{background:#7658ac}.orange{background:#c77a31}
+.pname{font-weight:850;font-size:13px;line-height:1.25}.pdesc{font-size:11px;line-height:1.45;color:var(--muted)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.btn{border:0;border-radius:11px;padding:12px 15px;font-weight:800;font-size:12px;cursor:pointer;transition:all .15s}
+.primary{background:var(--forest);color:#fff;box-shadow:0 4px 10px #073f2b18}.primary:hover{background:var(--forest2);transform:translateY(-1px)}
+.secondary{background:#f0f3ef;color:var(--ink);border:1px solid #e2e8e1}.secondary:hover{background:#e7eee7}
+.danger{background:#fff0ec;color:#9b3829}.hint{font-size:11px;color:var(--muted);margin-left:auto}
+.result{margin-top:18px;display:none}.result.show{display:block}
+.result-card{display:grid;grid-template-columns:minmax(190px,.72fr) minmax(0,1.28fr);gap:22px;align-items:center;background:linear-gradient(135deg,#f7faf6,#fffdf7);border:1px solid #dce7df;border-radius:18px;padding:clamp(16px,2vw,24px)}
+.animal-art{min-height:250px;border-radius:16px;background:radial-gradient(circle at 50% 25%,#fff 0,#f4f0df 70%);border:1px solid #eee4c7;display:grid;place-items:center;font-size:clamp(80px,9vw,120px);position:relative;overflow:hidden}
+.animal-art:before{content:"";position:absolute;width:180px;height:180px;border:1px solid #d9ae4b55;border-radius:50%;box-shadow:0 0 0 18px #d9ae4b0c,0 0 0 38px #d9ae4b08}
+.animal-art span,.animal-art small{position:relative;z-index:1}.animal-art small{position:absolute;bottom:14px;font-size:11px;font-weight:900;letter-spacing:2px;color:var(--forest)}
+.oil-display{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:14px}
+.bottle{width:92px;height:150px;position:relative;border-radius:22px 22px 17px 17px;background:linear-gradient(90deg,#572306,#b45a15 28%,#4b1e07 70%,#d17a29);border:3px solid #d9ae4b;box-shadow:inset 7px 0 9px #ffffff45,0 10px 18px #173b251f;display:flex;align-items:center;justify-content:center;padding:8px;margin-top:24px}
+.bottle:before{content:'';position:absolute;top:-27px;width:43px;height:31px;border-radius:7px 7px 3px 3px;background:repeating-linear-gradient(90deg,#202020 0 4px,#454545 4px 6px);border:2px solid #b99a55}
+.bottle-label{background:#fff8e6;border-radius:5px;width:100%;min-height:80px;padding:7px 3px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;color:var(--forest);border:1px solid #e8c66b;overflow-wrap:anywhere}
+.bottle-label strong{font-size:10px;line-height:1.1}.bottle-label span{font-size:9px;line-height:1.3}
+.result-details h2{font-size:clamp(23px,3vw,34px);margin:0 0 8px;color:var(--forest)}
+.result-details .tagline{color:#8a6814;font-weight:850;letter-spacing:1.4px;text-transform:uppercase;font-size:10px;margin-bottom:8px}
+.traits{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.trait{padding:13px;border-radius:13px;background:#fff;border:1px solid var(--line);font-size:12px;line-height:1.5}
+.trait strong{display:block;color:var(--forest2);margin-bottom:5px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.potion-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.chip{padding:7px 10px;border-radius:20px;background:#eaf3e9;border:1px solid #d3e4d5;color:var(--forest);font-size:11px;font-weight:850}
+.summary{margin-top:18px}.summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.summary-card{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;transition:all .15s}.summary-card h3{font-size:13px;margin:0 0 8px;color:var(--forest)}
+.summary-card p{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 5px}.summary-card strong{color:var(--ink)}.empty{color:#87948c;font-style:italic}
+.toast{display:none;margin-top:12px;border-radius:10px;padding:11px 13px;background:#e6f6e9;color:#145e35;font-size:12px;font-weight:750}.toast.show{display:block}
+footer{max-width:1500px;margin:0 auto;padding:0 clamp(14px,2.5vw,30px) 24px;color:#78857d;font-size:11px}
+@media(max-width:1100px){main{grid-template-columns:1fr}.groups{grid-template-columns:repeat(5,minmax(0,1fr))}.group{padding:8px}.group.active{padding:8px}.animal{margin-bottom:6px}.gsub{display:none}.status{display:inline-flex;margin:6px 0 0}.summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.potions{grid-template-columns:repeat(2,minmax(0,1fr))}.result-card{grid-template-columns:1fr}.animal-art{min-height:180px;font-size:88px}.traits{grid-template-columns:1fr}.hint{margin-left:0;width:100%}}
+@media(max-width:560px){header{padding:14px 16px}.tag{letter-spacing:1px}main{padding:10px}.panel{padding:14px;border-radius:16px}.groups{grid-template-columns:repeat(2,minmax(0,1fr))}.group{display:flex}.animal{margin:0}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.namefield input{min-width:100%}.actions .btn{flex:1}}
+@media print{body{background:#fff}header,aside,.content-head,.namefield,.progress,.potions,.actions,footer,.summary{display:none!important}main{display:block;padding:0}.panel{box-shadow:none;border:0}.result{display:block!important}.result-card{break-inside:avoid}}
+
+</style>
+</head>
+<body>
+<header><div class="brand">KAUSAR GROUP <span>| KAI8</span></div><div class="tag">Misi Magic Oils &nbsp;·&nbsp; Aktiviti kumpulan</div></header>
+<main>
+<aside class="panel"><h2>01 · Pilih kumpulan haiwan</h2><p class="intro">Pilih kumpulan anda dahulu. Setiap kumpulan boleh memilih 4 daripada 14 potions.</p><div class="groups" id="groups"></div></aside>
+<section class="panel">
+<div class="content-head"><div><h1>Bina Magic Oils Anda</h1><p class="intro" style="margin-bottom:0">Pilih 4 potions yang mewakili kekuatan kumpulan. Namakan minyak anda dan jana kad kumpulan.</p></div><div class="counter" id="counter">0 / 4 DIPILIH</div></div>
+<div id="animalGuide" class="traits" style="margin-top:16px"></div><div class="namefield"><label for="oilName">Nama minyak kumpulan:</label><input id="oilName" maxlength="50" placeholder="Contoh: KINGS OF JUNGLE"></div>
+<div class="progress"><span id="progress"></span></div>
+<div class="potions" id="potions"></div>
+<div class="actions"><button class="btn primary" id="saveBtn">Selesai pilih & jana kad</button><button class="btn secondary" id="clearBtn">Kosongkan pilihan</button><button class="btn secondary" id="exportBtn">Download Image PNG</button><span class="hint">Pilih tepat 4 potions untuk simpan.</span></div><div class="toast" id="toast" role="status"></div>
+</section>
+<section class="panel result" id="resultPanel" style="grid-column:1/-1"><div class="result-card" id="resultCard"></div><div class="actions"><button class="btn primary" id="downloadImageBtn">DOWNLOAD IMAGE PNG</button></div></section>
+
+</main><footer>Aktiviti latihan kumpulan · Setiap kumpulan guna telefon sendiri. Jana dan muat turun kad sebagai imej PNG.</footer>
+<script>
+const animals=[
+ {id:'cheetah',name:'Cheetah',ms:'Pantas & bertenaga',emoji:'🐆',identity:'Pantas, bertenaga dan mampu memecut ke hadapan.',weakness:'Mudah keletihan jika terlalu laju.'},
+ {id:'wolf',name:'Wolf',ms:'Konsisten & strategik',emoji:'🐺',identity:'Konsisten, bekerjasama dan bergerak secara strategik.',weakness:'Bukan pelari pecut; perlu kekalkan rentak.'},
+ {id:'octopus',name:'Octopus',ms:'Fleksibel & kreatif',emoji:'🐙',identity:'Fleksibel, kreatif dan mampu menyesuaikan banyak pendekatan.',weakness:'Boleh hilang momentum di pertengahan perjalanan.'},
+ {id:'tortoise',name:'Tortoise',ms:'Sabar & berdisiplin',emoji:'🐢',identity:'Sabar, stabil dan terus bergerak hingga selesai.',weakness:'Cenderung bermula lambat.'},
+ {id:'snail',name:'Snail',ms:'Perlahan tetapi gigih',emoji:'🐌',identity:'Tidak mudah berputus asa dan terus bergerak mengikut kemampuan.',weakness:'Perlukan dorongan dan motivasi untuk kekal bergerak.'}
+];
+const potions=[
+ ['Faith','Menguatkan keyakinan dan keteguhan.','red'],['Gratitude','Membina rasa syukur dan menghargai.','gold'],['Sincerity','Mengukuhkan keikhlasan dalam tindakan.','pink'],['Patience','Melatih kesabaran ketika menghadapi cabaran.','green'],['Purpose','Memberi hala tuju dan motivasi yang jelas.','gold'],['Resilience','Meningkatkan daya tahan dan ketabahan.','blue'],['Focus','Mengekalkan tumpuan pada perkara utama.','green'],['Discipline','Membina rutin dan konsistensi tindakan.','purple'],['Positivity','Mendorong pemikiran dan sikap positif.','gold'],['Courageous Action','Menggalakkan tindakan yang berani dan tegas.','orange'],['Vitality','Menyokong tenaga untuk terus bergerak.','red'],['Stamina','Membantu kekal bertenaga lebih lama.','blue'],['Agility','Membantu bergerak dan menyesuaikan diri dengan cekap.','teal'],['Restoration','Memberi ruang untuk pulih dan bermula semula.','purple']
+];
+const state={active:'cheetah',selected:{},names:{}};animals.forEach(a=>{state.selected[a.id]=[];state.names[a.id]=''});
+const $=id=>document.getElementById(id);
+function renderGroups(){ $('groups').innerHTML=animals.map(a=>{let done=state.selected[a.id].length===4;return `<button class="group ${state.active===a.id?'active':''}" data-group="${a.id}"><span class="animal">${a.emoji}</span><span><span class="gname">${a.name}</span><span class="gsub">${a.ms}</span><br><span class="status ${done?'done':''}">${done?'4/4 disimpan':state.selected[a.id].length+'/4 dipilih'}</span></span></button>`}).join('');document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{state.active=b.dataset.group;renderAll()})}
+function renderPotions(){let chosen=state.selected[state.active];$('potions').innerHTML=potions.map((p,i)=>`<button class="potion ${chosen.includes(i)?'selected':''}" data-potion="${i}" aria-pressed="${chosen.includes(i)}"><span class="drop ${p[2]}">${String(i+1).padStart(2,'0')}</span><span class="pname">${p[0]}</span><span class="pdesc">${p[1]}</span></button>`).join('');document.querySelectorAll('[data-potion]').forEach(b=>b.onclick=()=>{let idx=+b.dataset.potion,arr=state.selected[state.active];if(arr.includes(idx))state.selected[state.active]=arr.filter(x=>x!==idx);else if(arr.length<4)arr.push(idx);else notify('Maksimum 4 potions. Nyahpilih satu sebelum memilih yang lain.');renderAll(false)})}
+function renderCurrent(){let arr=state.selected[state.active],a=animals.find(x=>x.id===state.active);$('counter').textContent=`${arr.length} / 4 DIPILIH`;$('progress').style.width=(arr.length/4*100)+'%';$('oilName').value=state.names[state.active]||'';$('animalGuide').innerHTML=`<div class="trait"><strong>Identiti ${a.name}</strong>${a.identity}</div><div class="trait"><strong>Kelemahan ${a.name}</strong>${a.weakness}</div>`}
+function renderResult(){let a=animals.find(x=>x.id===state.active),arr=state.selected[state.active],name=(state.names[state.active]||'Magic Oils '+a.name).trim();if(arr.length!==4){$('resultPanel').classList.remove('show');return}let safeName=esc(name);$('resultCard').innerHTML=`<div class="animal-art" aria-label="Gambar haiwan ${a.name}"><span>${a.emoji}</span><small>${a.name.toUpperCase()}</small></div><div class="result-details"><div class="tagline">Misi Magic Oils · Kad Kumpulan</div><h2>${safeName}</h2><p style="margin:0;color:#617169">Nama minyak kumpulan</p><div class="traits"><div class="trait"><strong>Identiti ${a.name}</strong>${a.identity}</div><div class="trait"><strong>Kelemahan ${a.name}</strong>${a.weakness}</div></div><div class="oil-display"><div class="bottle"><div class="bottle-label"><strong>${safeName}</strong><span>${arr.map(i=>potions[i][0]).join(' · ')}</span></div></div><div><strong>4 Potions pilihan</strong><div class="potion-chips">${arr.map(i=>`<span class="chip">${esc(potions[i][0])}</span>`).join('')}</div></div></div></div>`;$('resultPanel').classList.add('show')}
+function renderSummary(){ $('summary').innerHTML=animals.map(a=>{let arr=state.selected[a.id],name=state.names[a.id];return `<article class="summary-card"><h3>${a.emoji} ${a.name}</h3>${name?`<p><strong>Minyak:</strong> ${esc(name)}</p>`:''}${arr.length?`<p><strong>${arr.length}/4 potions:</strong><br>${arr.map(i=>potions[i][0]).join(', ')}</p>`:`<p class="empty">Belum disimpan</p>`}</article>`}).join('') }
+function renderAll(groups=true){if(groups)renderGroups();renderPotions();renderCurrent();renderResult()}
+function notify(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3000)}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('oilName').addEventListener('input',e=>{state.names[state.active]=e.target.value;renderSummary()});
+$('saveBtn').onclick=()=>{if(state.selected[state.active].length!==4){notify('Sila pilih tepat 4 potions sebelum simpan.');return}notify('Pilihan '+animals.find(a=>a.id===state.active).name+' selesai! Kad haiwan dan botol minyak dijana di bawah.');renderAll()};
+$('clearBtn').onclick=()=>{state.selected[state.active]=[];renderAll();notify('Pilihan kumpulan ini telah dikosongkan.')};
+function downloadCardPNG(){let a=animals.find(x=>x.id===state.active),arr=state.selected[state.active],name=(state.names[state.active]||'Magic Oils '+a.name).trim();if(arr.length!==4){notify('Pilih tepat 4 potions dahulu, kemudian tekan GENERATE.');return}const escXml=v=>String(v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&apos;'}[c]));const potionLines=arr.map(i=>potions[i][0]);const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#073f2b"/><stop offset="1" stop-color="#0d6242"/></linearGradient></defs><rect width="1200" height="800" rx="30" fill="#f5f7f2"/><path d="M0 0H1200V150H0Z" fill="url(#bg)"/><rect x="0" y="144" width="1200" height="6" fill="#d9ae4b"/><text x="55" y="55" fill="#f5d77f" font-family="Arial" font-size="20" font-weight="bold" letter-spacing="4">KAUSAR GROUP  |  KAI8</text><text x="55" y="112" fill="white" font-family="Arial" font-size="36" font-weight="bold">MISI MAGIC OILS</text><rect x="45" y="185" width="340" height="560" rx="24" fill="#fff" stroke="#e2e9e1"/><circle cx="215" cy="360" r="110" fill="#fbf2d8"/><text x="215" y="395" text-anchor="middle" font-size="125">${a.emoji}</text><text x="215" y="520" text-anchor="middle" font-family="Arial" font-size="28" font-weight="bold" fill="#073f2b">${escXml(a.name.toUpperCase())}</text><text x="430" y="230" font-family="Arial" font-size="18" font-weight="bold" fill="#98721b" letter-spacing="3">NAMA MINYAK KUMPULAN</text><text x="430" y="285" font-family="Arial" font-size="42" font-weight="bold" fill="#073f2b">${escXml(name.slice(0,38))}</text><rect x="430" y="320" width="330" height="125" rx="18" fill="white" stroke="#e2e9e1"/><text x="455" y="355" font-family="Arial" font-size="18" font-weight="bold" fill="#0d6242">IDENTITI</text><text x="455" y="387" font-family="Arial" font-size="17" fill="#152b22">${escXml(a.identity)}</text><rect x="780" y="320" width="370" height="125" rx="18" fill="white" stroke="#e2e9e1"/><text x="805" y="355" font-family="Arial" font-size="18" font-weight="bold" fill="#0d6242">KELEMAHAN</text><text x="805" y="387" font-family="Arial" font-size="17" fill="#152b22">${escXml(a.weakness)}</text><rect x="430" y="475" width="720" height="270" rx="22" fill="#fff" stroke="#e2e9e1"/><text x="465" y="520" font-family="Arial" font-size="20" fo
